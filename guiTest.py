@@ -16,7 +16,7 @@ RIGHT_SIDE = 800
 BOTTOM_SIDE = 800
 ZERO_LINE = BOTTOM_SIDE / 2
 SCALE_FACTOR = 2
-FRAMERATE = 10
+FRAMERATE = 25
 FRAME_DELAY = 1000 / FRAMERATE
 
 class SampleDisplayer:
@@ -90,8 +90,8 @@ class SampleDisplayer:
 				self.mainCanvas.create_line(RIGHT_SIDE, lineY, self.xPosition + RIGHT_SIDE, lineY, fill="grey")
 
 		# we want vertical lines every second
-		if (self.xPosition % 10) == 0:
-			if (self.xPosition % 100) == 0:
+		if (self.xPosition % FRAMERATE) == 0:
+			if (self.xPosition % (FRAMERATE * 10)) == 0:
 				color = "dark grey"
 			else:
 				color = "grey"
@@ -100,8 +100,8 @@ class SampleDisplayer:
 			self.lastLine = self.mainCanvas.create_line(self.xPosition, 0, self.xPosition, BOTTOM_SIDE, fill=color)
 
 		# we want time labels every 10 seconds
-		if (self.xPosition % 100) == 0:
-			label = str(self.xPosition / 10)
+		if (self.xPosition % (FRAMERATE * 10)) == 0:
+			label = str(self.xPosition / FRAMERATE)
 			xPos = self.xPosition
 			if xPos == 0:
 				xPos = 5
