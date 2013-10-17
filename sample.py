@@ -41,7 +41,7 @@ class CurrentModule:
 		if YAPI.RegisterHub("usb", errmsg)!= YAPI.SUCCESS:
 			sys.exit("init error"+errmsg.value)
 
-		sensor = YCurrent.FindCurrent('ammeter.current1')
+		sensor = YCurrent.FirstCurrent()
 		if sensor is None :
 			die('No module connected')
 
