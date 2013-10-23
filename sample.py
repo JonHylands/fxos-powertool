@@ -8,6 +8,8 @@ sys.path.append(os.path.join("..","YoctoLib.python.12553","Sources"))
 from yocto_api import *
 from yocto_current import *
 
+import serial
+
 def die(msg):
     sys.exit(msg+' (check USB cable)')
 
