@@ -3,10 +3,9 @@
 import os,sys
 import datetime as dt
 import time
-# add ../../Sources to the PYTHONPATH
-sys.path.append(os.path.join("..","YoctoLib.python.12553","Sources"))
-from yocto_api import *
-from yocto_current import *
+
+from yoctopuce.yocto_api import YAPI, YRefParam, YModule
+from yoctopuce.yocto_current import YCurrent
 
 # import serial
 
