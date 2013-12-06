@@ -1,0 +1,30 @@
+{
+    "title": "Power Consumption Tests",
+    "tests": [
+        "Homescreen Idle, Screen On",
+        "Homescreen Idle, Screen Off",
+        "Turn on Bluetooth",
+        "Turn on Bluetooth, Paired to Other Device",
+        "Turn on Bluetooth, Transfer File",
+        "Turn on Wifi",
+        "Turn on Wifi, Connect to AP",
+        "Open Gallery App, Reference Workload",
+        "Open Camera App",
+        "Take a Picture",
+        "Open Music App, Reference Workload",
+        "Play Song, Max Volume",
+        "Open Video App, Reference Workload",
+        "Play Video, Max Volume",
+        "Open SMS App",
+        "Open Browser",
+        "Load mozilla.org in Browser",
+        "Open Settings App",
+        "Open Email App",
+        "Open Calendar App, Reference Workload",
+        "Open Clock App",
+        "Power ON",
+        "Power OFF",
+        "Play Youtube Video, Wifi"
+    ]
+}
+
