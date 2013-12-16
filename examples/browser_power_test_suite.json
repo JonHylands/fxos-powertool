@@ -1,0 +1,18 @@
+{
+    "title": "Browser Power Consumption Tests",
+    "tests": [
+        "Firefox Launch",
+        "Firefox Kraken Benchmark",
+        "Firefox WebGL Benchmark",
+        "Firefox HTML5 Test",
+        "Firefox Beta Launch",
+        "Firefox Beta Kraken Benchmark",
+        "Firefox Beta WebGL Benchmark",
+        "Firefox Beta HTML5 Test",
+        "Chrome Launch",
+        "Chrome Kraken Benchmark",
+        "Chrome WebGL Benchmark",
+        "Chrome HTML5 Test"
+    ]
+}
+
