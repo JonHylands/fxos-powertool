@@ -1,0 +1,8 @@
+{
+    "title": "FxOS Clock Power Consumption Tests",
+    "tests": [
+        "Launch Clock App, 10 seconds",
+        "Clock App Idle, 30 seconds"
+    ]
+}
+

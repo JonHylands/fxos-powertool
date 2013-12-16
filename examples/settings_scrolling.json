@@ -1,0 +1,12 @@
+{
+    "title": "Settings App Scrolling",
+    "tests": [
+        "Scroll down",
+        "Scroll up",
+        "Scrolling back and forth",
+        "Scroll down patched",
+        "Scroll up patched",
+        "Scrolling back and forth patched"
+    ]
+}
+

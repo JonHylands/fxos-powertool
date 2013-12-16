@@ -1,0 +1,13 @@
+{
+    "title": "Fennic vs Chrome Power Consumption Tests",
+    "tests": [
+        "Open Browser",
+        "Close Brower",
+        "Load mozilla.org (mozilla.org)",
+        "Run Kraken Benchmark (krakenbenchmark.mozilla.org/)",
+        "Run Acid 3 (acid3.acidtests.org)",
+        "Run HTML5 Test (html5test.com)",
+        "Run WebGL Benchmark (webgl-bench.appspot.com/)"
+    ]
+}
+

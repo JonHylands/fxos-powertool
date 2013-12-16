@@ -75,7 +75,7 @@ class TkUI(UI, SuiteRunner):
         self._drawInitialMainCanvas()
 
     def _updateTitle(self):
-        self._root.title(APP_NAME + self._suite.title + " -- Test: " + 
+        self._root.title(APP_NAME + " -- Test: " + 
                          self._suite.tests[self._test_index])
 
     def _drawCurrentLine(self):
