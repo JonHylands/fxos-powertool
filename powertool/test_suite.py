@@ -94,9 +94,8 @@ class TestSuite(object):
 
         # add all of the source to the DataSeries
         for src in self._sources:
-            for name in src.names:
-                sampler = Sampler( name, src )
-                self._current_test.addSource( name, sampler )
+            sampler = Sampler( src.names, src )
+            self._current_test.addSource( sampler )
 
     def getSample(self):
         if not self.testRunning:

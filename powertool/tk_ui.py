@@ -97,63 +97,64 @@ class TkUI(UI, SuiteRunner):
             return
 
         # get the sample we are currently displaying
-        sample = samples[self._show]
+        sample = samples.get(self._show, None)
 
-        # add it to 
-        newYPosition = ZERO_LINE - (sample.value / SCALE_FACTOR)
+        if sample != None:
+            # add it to 
+            newYPosition = ZERO_LINE - (sample.value / SCALE_FACTOR)
 
-        # log the sample
-        self._logWidget.insert(END, " ".join([str(sample.value), sample.units]))
-        self._logWidget.see(END)
+            # log the sample
+            self._logWidget.insert(END, " ".join([str(sample.value), sample.units]))
+            self._logWidget.see(END)
 
-        # we want horizontal lines each 100 mA
-        if (self._xPos % RIGHT_SIDE) == 0:
-            for index in range(-7, 8):
-                lineY = ZERO_LINE - (index * (100 / SCALE_FACTOR));
-                self._mainCanvas.create_line(RIGHT_SIDE, lineY, self._xPos + RIGHT_SIDE, lineY, fill="grey")
+            # we want horizontal lines each 100 mA
+            if (self._xPos % RIGHT_SIDE) == 0:
+                for index in range(-7, 8):
+                    lineY = ZERO_LINE - (index * (100 / SCALE_FACTOR));
+                    self._mainCanvas.create_line(RIGHT_SIDE, lineY, self._xPos + RIGHT_SIDE, lineY, fill="grey")
 
-        # we want vertical lines every second
-        if (self._xPos % FRAMERATE) == 0:
+            # we want vertical lines every second
+            if (self._xPos % FRAMERATE) == 0:
+                if (self._xPos % (FRAMERATE * 10)) == 0:
+                    color = "dark grey"
+                else:
+                    color = "grey"
+                if self._lastLine != None:
+                    self._mainCanvas.tag_lower(self._lastLine)
+                self._lastLine = self._mainCanvas.create_line(self._xPos, 0, self._xPos, BOTTOM_SIDE, fill=color)
+
+            # we want time labels every 10 seconds
             if (self._xPos % (FRAMERATE * 10)) == 0:
-                color = "dark grey"
-            else:
-                color = "grey"
-            if self._lastLine != None:
-                self._mainCanvas.tag_lower(self._lastLine)
-            self._lastLine = self._mainCanvas.create_line(self._xPos, 0, self._xPos, BOTTOM_SIDE, fill=color)
+                label = str(self._xPos / FRAMERATE)
+                xPos = self._xPos
+                if xPos == 0:
+                    xPos = 5
+                # we have this nonesense with _lastLine so the last seconds text label will be above the next line
+                self._mainCanvas.create_text(xPos, BOTTOM_SIDE - 10, text=label, fill="blue")
 
-        # we want time labels every 10 seconds
-        if (self._xPos % (FRAMERATE * 10)) == 0:
-            label = str(self._xPos / FRAMERATE)
-            xPos = self._xPos
-            if xPos == 0:
-                xPos = 5
-            # we have this nonesense with _lastLine so the last seconds text label will be above the next line
-            self._mainCanvas.create_text(xPos, BOTTOM_SIDE - 10, text=label, fill="blue")
-
-        # draw the line(s)
-        if sample.value < 0:
-            if self._prevValue > 0:
-                self._mainCanvas.create_line(self._xPos, self._yPos, self._xPos, ZERO_LINE, fill="black")
-                self._mainCanvas.create_line(self._xPos, ZERO_LINE, self._xPos + 1, newYPosition, fill="red")
+            # draw the line(s)
+            if sample.value < 0:
+                if self._prevValue > 0:
+                    self._mainCanvas.create_line(self._xPos, self._yPos, self._xPos, ZERO_LINE, fill="black")
+                    self._mainCanvas.create_line(self._xPos, ZERO_LINE, self._xPos + 1, newYPosition, fill="red")
+                else:
+                    self._mainCanvas.create_line(self._xPos, self._yPos, self._xPos + 1, newYPosition, fill="red")
             else:
-                self._mainCanvas.create_line(self._xPos, self._yPos, self._xPos + 1, newYPosition, fill="red")
-        else:
-            if self._prevValue < 0:
-                self._mainCanvas.create_line(self._xPos, self._yPos, self._xPos, ZERO_LINE, fill="red")
-                self._mainCanvas.create_line(self._xPos, ZERO_LINE, self._xPos + 1, newYPosition, fill="black")
-            else:
-                self._mainCanvas.create_line(self._xPos, self._yPos, self._xPos + 1, newYPosition, fill="black")
+                if self._prevValue < 0:
+                    self._mainCanvas.create_line(self._xPos, self._yPos, self._xPos, ZERO_LINE, fill="red")
+                    self._mainCanvas.create_line(self._xPos, ZERO_LINE, self._xPos + 1, newYPosition, fill="black")
+                else:
+                    self._mainCanvas.create_line(self._xPos, self._yPos, self._xPos + 1, newYPosition, fill="black")
 
-        # update continuous values, and compute the 10 Hz delay
-        self._xPos = self._xPos + 1
-        self._mainCanvas.config(scrollregion=(0, 0, self._xPos, BOTTOM_SIDE))
-        self._yPos = newYPosition
-        self._prevValue = sample.value
+            # update continuous values, and compute the 10 Hz delay
+            self._xPos = self._xPos + 1
+            self._mainCanvas.config(scrollregion=(0, 0, self._xPos, BOTTOM_SIDE))
+            self._yPos = newYPosition
+            self._prevValue = sample.value
+        
+        # set a timer to call this function again
         drawTime = int(now_in_millis() - startTime)
         waitTime = max(FRAME_DELAY - drawTime, 0)
-       
-        # set a timer to call this function again
         self._timer_id = self._mainCanvas.after(waitTime, self._drawCurrentLine)
 
     # draw the scale lines & text down the left side of the window

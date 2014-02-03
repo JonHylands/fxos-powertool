@@ -50,7 +50,7 @@ class YoctoAmmeter(YoctoDevice, SampleSource, DeviceManager):
     and implements the SampleSource interface.  It provides a source called
     'current' that delivers DC current samples in mA. """
 
-    def __init__(self):
+    def __init__(self, path):
         super(YoctoAmmeter, self).__init__()
         self._delivery = defaultdict(list)
 
@@ -70,12 +70,16 @@ class YoctoAmmeter(YoctoDevice, SampleSource, DeviceManager):
         """ We only provide 'current' samples """
         return ('current',)
 
-    def getSample(self, name):
-        if name != 'current':
-            raise ValueError( "YoctoAmmeter only provides 'current' samples" )
+    def getSample(self, names):
+        for name in names:
+            if name not in self.names:
+                raise ValueError( "YoctoAmmeter only provides 'current' samples" )
 
         # return a Sample with the current value from the ammeter sensor
-        return Sample( self.sensor.get_currentValue(), 'mA' )
+        return { name: Sample( self.sensor.get_currentValue(), 'mA' ) }
+
+    def close(self):
+        pass
 
     # FIXME: refactor this to use an ADBDeviceManager mixin eventually
     def startCharging(self, charge_complete):

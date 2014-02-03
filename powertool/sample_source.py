@@ -11,7 +11,7 @@ class SampleSource(object):
     of data samples should derive from, and implement the interface of, this class. """
 
     @classmethod
-    def create(cls, device):
+    def create(cls, device, path):
         try:
             # import the module
             m = importlib.import_module('.'.join(['powertool',device]))
@@ -23,19 +23,23 @@ class SampleSource(object):
             ctor = getattr(m, sscls)
 
             # create an instance
-            return ctor()
+            return ctor(path)
 
         except:
             raise Exception("Unsupported device: %s" % device)
 
     @property
     def names(self):
-        """ We only provide 'current' samples """
-        return ('current',)
+        """ Return the names of the data sources (e.g. 'current', 'voltage', etc) """
+        raise NotImplementedError( "SampleSource.names not implemented" )
 
     def getSample(self, name):
         """ Return the next sample from the source with the given name """
         raise NotImplementedError( "SampleSource.getSample not implemented" )
+
+    def close(self):
+        """ Release any resources associated with collecting samples """
+        raise NotImplementedError( "SampleSource.close not implemented" )
 
 
 class Sampler(object):
@@ -43,10 +47,10 @@ class Sampler(object):
     into a callable object that can be used anonymously to get the next sample from
     the SampleSource. """
 
-    def __init__(self, name, source):
-        self._name = name
+    def __init__(self, names, source):
+        self._names = names
         self._source = source
 
     def __call__(self):
-        return self._source.getSample(self._name)
+        return self._source.getSample(self._names)
 

@@ -19,6 +19,8 @@ def main():
         parser = argparse.ArgumentParser(description='Mozilla Powertool')
         parser.add_argument('-d', '--device', type=str,  required=True, 
                             choices=['yocto','mozilla'], help="specify ammeter device to use")
+        parser.add_argument('-p', '--path', type=str, default=None, 
+                            help="specify path to ammeter device (e.g. /dev/ttyACM0)")
         parser.add_argument('-u', '--ui', type=str, required=True,
                             choices=['tk','cli'], default='cli', help="specify which UI to use")
         parser.add_argument('-f', '--file', type=str,  default=None, help="test run config file")
@@ -27,7 +29,7 @@ def main():
         args = parser.parse_args()
 
         # create the sample source
-        source = SampleSource.create( args.device )
+        source = SampleSource.create( args.device, args.path )
         
         # create the test suite
         suite = TestSuite.create( args.file )
@@ -46,6 +48,9 @@ def main():
 
         # save the data
         saver.save( suite )
+
+        # shut down the sample source
+        source.close()
         
         sys.exit(0)
 
