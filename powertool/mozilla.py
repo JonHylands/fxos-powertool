@@ -6,6 +6,7 @@
 import collections
 import Queue
 import serial
+import sys
 import threading
 import time
 
@@ -17,7 +18,7 @@ from time_utils import now_in_millis
 # the name of the SampleSource class to use
 SampleSourceClass = 'MozillaAmmeter'
 
-SAMPLE_RATE = 25
+SAMPLE_RATE = 100
 SAMPLE_TIME = 1000 / SAMPLE_RATE
 
 class MozillaDevice(threading.Thread):
@@ -36,51 +37,38 @@ class MozillaDevice(threading.Thread):
     def __init__(self, path):
         super(MozillaDevice, self).__init__()
         self._path = path
-        self._queue = Queue.Queue()
+        self._cmds = Queue.Queue()
         self._quit = threading.Event()
-        self._sampling = threading.Event()
-        self._samples = collections.deque(maxlen=10)
+        self._packets = collections.deque(maxlen=10)
         self._module = serial.Serial(port=self._path, baudrate=self.BAUD, timeout=self.TIMEOUT)
 
         # start the thread
         super(MozillaDevice, self).start()
 
-
-    @property
-    def module(self):
-        if hasattr(self, '_module') and self._module:
-            return self._module
-
-        return None
-
     def sendCommand(self, cmd):
         """ adds a command to the command queue """
-        self._queue.put_nowait(cmd)
+        self._cmds.put_nowait(cmd)
 
     @property
-    def isSampling(self):
-        return self._sampling.is_set()
-
-    @property
-    def sample(self):
+    def packet(self):
         try:
             # this is atomic
-            return self._samples.popleft()
+            return self._packets.popleft()
         except:
-            return {}
+            return None
 
-    # make sample a read-only property
-    @sample.setter
-    def sample(self, data):
+    # make packet a read-only property
+    @packet.setter
+    def packet(self, data):
         pass
 
     def quit(self):
+        # send STOP_ASYNC command to wake up the worker thread, if needed
+        self.sendCommand(self.STOP_ASYNC)
+
         # set the quit flag, all remaining commands will be processed before
         # the thread function exits
         self._quit.set()
-
-        # send STOP_ASYNC command to wake up the worker thread, if needed
-        self.sendCommand(self.STOP_ASYNC)
 
         # join the thread and wait for the thread function to exit
         super(MozillaDevice, self).join()
@@ -91,66 +79,98 @@ class MozillaDevice(threading.Thread):
     def run(self):
         """ This is run in a separate thread """
 
+        # start off by putting the START_ASYNC command in the command queue
+        self.sendCommand(MozillaDevice.START_ASYNC)
+
         while True:
-            s1 = now_in_millis()
-            try:
-                # try to get a command to process...
-                if self._sampling.is_set():
-                    # don't wait for a command
-                    cmd = self._queue.get_nowait()
-                else:
-                    # block waiting for a command
-                    cmd = self._queue.get( True )
-                    s1 = now_in_millis()
+            if not self._cmds.empty():
+                try:
+                    # block waiting for a command at most 100ms
+                    cmd = self._cmds.get( True, 0.1)
 
-                self.module.write(cmd)
-                self.module.flush()
-                # mark the command as processed
-                self._queue.task_done()
+                    # send the command to the device
+                    self._module.write(cmd)
+                    self._module.flush()
 
-                if cmd == self.START_ASYNC:
-                    self._sampling.set()
-                elif cmd == self.STOP_ASYNC:
-                    self._sampling.clear()
+                    # mark the command as processed
+                    self._cmds.task_done()
 
-            except Queue.Empty:
-                # if we're sampling and there are no queued commands, the get_nowait()
-                # causes an exception and execution resumes here
-                pass
+                except Queue.Empty:
+                    # if we get here, the get() timed out or the queue was empty
+                    pass
 
-            if self._queue.empty() and self._quit.is_set():
+            elif self._quit.is_set():
                 # time to quit
                 return
 
-            if self._sampling.is_set():
-                #print "reading data from module"
-                # read any data from the device
-                data = self.module.read(self.RESPONSE_SIZE)
+            # read a packet from the device and queue it up
+            self._packets.append( self._module.read(self.RESPONSE_SIZE) )
 
-                packetLength = len(data)
-                if packetLength != 86:
-                    print 'Packet is not 86 bytes long - {} bytes'.format(packetLength)
-                    return
 
-                dataPortion = data[5:packetLength-1]
-                for index in range(0, 10):
-                    startIndex = index * 8
-                    endIndex = startIndex + 8
-                    sampleBytes = dataPortion[startIndex:endIndex]
-                    # get the current in mA
-                    current = int(ord(sampleBytes[0]) + (ord(sampleBytes[1]) * 256) / 10)
-                    if (current > 32767):
-                        current = (65536 - current) * -1;
-                    voltage = ord(sampleBytes[2]) + (ord(sampleBytes[3]) * 256)
-                    #msCounter = ord(sampleBytes[4]) + (ord(sampleBytes[5]) * 256) + (ord(sampleBytes[6]) * 65536) + (ord(sampleBytes[7]) * 16777216)
+class MozillaPacketHandler(threading.Thread):
 
-                    # this is atomic
-                    self._samples.append({'current':current, 'voltage':voltage })
+    def __init__(self, device):
+        super(MozillaPacketHandler, self).__init__()
+        self._quit = threading.Event()
+        self._samples = collections.deque(maxlen=20)
+        self._device = device
 
-            elapsed = int(now_in_millis() - s1)
-            waitTime = max(SAMPLE_TIME - elapsed, 1)
-            if waitTime > 0:
-                time.sleep(waitTime / 1000)
+        # start the thread
+        super(MozillaPacketHandler, self).start()
+
+    @property
+    def sample(self):
+        try:
+            # this is atomic
+            return self._samples.popleft()
+        except:
+            return {}
+
+    # make packet a read-only property
+    @sample.setter
+    def sample(self, data):
+        pass
+
+    def quit(self):
+        self._quit.set()
+        super(MozillaPacketHandler, self).join()
+
+    def run(self):
+
+        while True:
+            if self._quit.is_set():
+                return
+
+            # get a packet from the device thread
+            data = self._device.packet
+
+            # if we didn't get a packet, sleep a little and try again
+            if data == None:
+                time.sleep(0.1)
+                continue
+
+            # sanity check
+            packetLength = len(data)
+            if packetLength != 86:
+                print >> sys.stderr, "Packet is not 86 bytes long - %d bytes" % packetLength
+                continue
+
+            # unpack the first sample from the packet
+            dataPortion = data[5:packetLength-1]
+            for index in range(0, 10):
+                startIndex = index * 8
+                endIndex = startIndex + 8
+                sampleBytes = dataPortion[startIndex:endIndex]
+                
+                # get the current in mA
+                current = int(ord(sampleBytes[0]) + (ord(sampleBytes[1]) * 256) / 10)
+                if (current > 32767):
+                    current = (65536 - current) * -1;
+
+                # get the voltage in mV
+                voltage = ord(sampleBytes[2]) + (ord(sampleBytes[3]) * 256)
+
+                self._samples.append({'current':current, 'voltage':voltage })
 
 
 class MozillaAmmeter(SampleSource, DeviceManager):
@@ -165,6 +185,7 @@ class MozillaAmmeter(SampleSource, DeviceManager):
 
         # create the threaded device object and get the thread going
         self._device = MozillaDevice(path)
+        self._handler = MozillaPacketHandler(self._device)
 
     @property
     def names(self):
@@ -172,26 +193,16 @@ class MozillaAmmeter(SampleSource, DeviceManager):
         return ('current','voltage')
 
     def getSample(self, names):
-        for name in names:
-            if name not in self.names:
-                raise ValueError( "MozillaAmmeter only provides 'current', 'voltage', and 'time' samples" )
-
-        if not self._device.isSampling:
-            self._device.sendCommand(MozillaDevice.START_ASYNC)
-
         # get a sample
-        sample = self._device.sample
+        sample = self._handler.sample
 
         # pull the requested samples out
-        samples = {}
-        for name in names:
-            if sample.has_key(name):
-                samples[name] = Sample(int(sample[name]), self.UNITS[name])
-
-        return samples
+        return { name: Sample(int(sample[name]), self.UNITS[name]) for name in names }
 
     def close(self):
-        # stop the thread and wait for everything to finish
+        # stop the packet handler thread and wait for it to finish
+        self._handler.quit()
+        # stop the device handler thread and wait for it to finish
         self._device.quit()
 
     # FIXME: refactor this to use an ADBDeviceManager mixin eventually
@@ -208,8 +219,8 @@ class MozillaAmmeter(SampleSource, DeviceManager):
         pass
 
     def hardPowerOff(self):
-        self.sendCommand(MozillaDevice.TURN_OFF_BATTERY)
+        self._device.sendCommand(MozillaDevice.TURN_OFF_BATTERY)
 
     def hardPowerOn(self):
-        self.sendCommand(MozillaDevice.TURN_ON_BATTERY)
+        self._device.sendCommand(MozillaDevice.TURN_ON_BATTERY)
 

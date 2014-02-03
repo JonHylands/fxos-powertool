@@ -25,8 +25,12 @@ class SampleSource(object):
             # create an instance
             return ctor(path)
 
-        except:
+        except NameError:
             raise Exception("Unsupported device: %s" % device)
+
+        except Exception, e:
+            classname = str(type(e))[:-2].split('.')[-1]
+            raise Exception("Failed to load: %s (REASON: %s -- %s)" % (device, classname, str(e)))
 
     @property
     def names(self):

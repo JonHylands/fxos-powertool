@@ -221,8 +221,6 @@ class TkUI(UI, SuiteRunner):
         except Exception, e:
             print("failed to stop test: %s" % e)
         
-       
-
     def nextTest(self):
         if self._test_index + 1 < len(self._suite.tests):
             self._test_index += 1
