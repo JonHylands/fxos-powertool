@@ -20,7 +20,7 @@ Quick Start
 The first step is to clone this repo:
 
 ```sh
-$ git clone git://github.com/jonhylands/fxos-powertool
+$ git clone git://github.com/JonHylands/fxos-powertool
 ```
 
 Then isntall the application and dependencies:
