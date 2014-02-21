@@ -5,7 +5,6 @@
 
 from collections import defaultdict
 import json
-import magic
 
 from data_series import DataSeries
 from sample_source import SampleSource, Sampler
@@ -18,10 +17,8 @@ class TestSuite(object):
             # return an empty TestRun if we're just looking at live samples
             return cls( "FxOS Powertool", ['Null Test'] )
 
-        mime = magic.from_file( in_file, mime=True )
-        if mime == 'text/plain':
-            if in_file.endswith('json'):
-                return cls.fromJSON( in_file )
+        if in_file.endswith('json'):
+            return cls.fromJSON( in_file )
 
         raise ValueError( "unsupported test run config file format" )
 

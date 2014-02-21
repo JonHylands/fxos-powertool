@@ -8,7 +8,7 @@ from collections import defaultdict
 from yoctopuce.yocto_api import YAPI, YRefParam, YModule
 from yoctopuce.yocto_current import YCurrent
 
-from sample_source import SampleSource
+from sample_source import SampleSource, SampleSourceNoDeviceError
 from device_manager import DeviceManager
 from sample import Sample
 
@@ -54,15 +54,18 @@ class YoctoAmmeter(YoctoDevice, SampleSource, DeviceManager):
         super(YoctoAmmeter, self).__init__()
         self._delivery = defaultdict(list)
 
+        try:
+            # get a handle to the ammeter sensor
+            self._sensor = YCurrent.FindCurrent(self.module.get_serialNumber() + '.current1')
+            if not self.module.isOnline() or self._sensor is None:
+                raise Exception('could not get sensor device')
+        except:
+            raise SampleSourceNoDeviceError('yocto')
+
+        print "Found Yocto Ammeter %s attached to USB" % self._sensor.get_hardwareId()
+
     @property
     def sensor(self):
-        if hasattr(self, '_sensor') and self._sensor:
-            return self._sensor
-
-        # get a handle to the ammeter sensor
-        self._sensor = YCurrent.FindCurrent(self.module.get_serialNumber() + '.current1')
-        if not self.module.isOnline() or self._sensor is None:
-            raise Exception('could not get sensor device')
         return self._sensor
 
     @property
