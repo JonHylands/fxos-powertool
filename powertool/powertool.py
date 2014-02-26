@@ -17,9 +17,10 @@ def main():
     try:
         # set up and parse arguments
         parser = argparse.ArgumentParser(description='Mozilla Powertool')
-        parser.add_argument('-d', '--device', type=str,  required=True, 
-                            choices=['yocto','mozilla'], help="specify ammeter device to use")
-        parser.add_argument('-p', '--path', type=str, default=None, 
+        parser.add_argument('-d', '--device', type=str,  default=['mozilla','yocto'], 
+                            choices=['yocto','mozilla'], action='append',
+                            help="specify ammeter device to use")
+        parser.add_argument('-p', '--path', type=str, default=None,
                             help="specify path to ammeter device (e.g. /dev/ttyACM0)")
         parser.add_argument('-u', '--ui', type=str, required=True,
                             choices=['tk','cli'], default='cli', help="specify which UI to use")

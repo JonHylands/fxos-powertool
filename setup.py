@@ -13,7 +13,7 @@ version = {}
 execfile(os.path.join('powertool', 'version.py'), version)
 
 # dependencies
-deps = ['python-magic==0.4.6', 'yoctopuce==1.01.12553', 'pyserial']
+deps = ['yoctopuce==1.01.12553', 'numpy==1.7.1', 'pyserial']
 
 setup(name='powertool',
       version=version['__version__'],

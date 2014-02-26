@@ -4,33 +4,51 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import importlib
-from exceptions import NotImplementedError
+from exceptions import NotImplementedError, Exception
+
+class SampleSourceError(Exception):
+    """ Base class for all SampleSource errors """
+    def __init__(self, msg):
+        super(SampleSourceError, self).__init__(msg)
+
+class SampleSourceNoDeviceError(SampleSourceError):
+    """ Error raised when the specified device is not present """
+    def __init__(self, msg):
+        super(SampleSourceNoDeviceError, self).__init__(msg)
+
 
 class SampleSource(object):
     """ This is an abstract base class for sources of data samples. All sources
     of data samples should derive from, and implement the interface of, this class. """
 
     @classmethod
-    def create(cls, device, path):
-        try:
-            # import the module
-            m = importlib.import_module('.'.join(['powertool',device]))
+    def create(cls, devices, path):
+        for device in devices:
+            try:
+                # import the module
+                m = importlib.import_module('.'.join(['powertool',device]))
 
-            # get the name of the sample source class
-            sscls = getattr(m, 'SampleSourceClass')
+                # get the name of the sample source class
+                sscls = getattr(m, 'SampleSourceClass')
 
-            # get the sample source class
-            ctor = getattr(m, sscls)
+                # get the sample source class
+                ctor = getattr(m, sscls)
 
-            # create an instance
-            return ctor(path)
+                # create an instance
+                return ctor(path)
 
-        except NameError:
-            raise Exception("Unsupported device: %s" % device)
+            except SampleSourceNoDeviceError, d:
+                #print "No %s devices found" % d
+                pass
 
-        except Exception, e:
-            classname = str(type(e))[:-2].split('.')[-1]
-            raise Exception("Failed to load: %s (REASON: %s -- %s)" % (device, classname, str(e)))
+            except NameError:
+                raise Exception("Unsupported device: %s" % device)
+
+            except Exception, e:
+                classname = str(type(e))[:-2].split('.')[-1]
+                raise Exception("Failed to load: %s (REASON: %s -- %s)" % (device, classname, str(e)))
+
+        raise Exception("No Mozilla or Yocto devices found")
 
     @property
     def names(self):
