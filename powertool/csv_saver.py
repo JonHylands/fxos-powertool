@@ -5,12 +5,13 @@
 
 from collections import defaultdict
 import csv
-import numpy
 import os
 import shutil
+from math import sqrt
 
 from test_suite import TestSuite
 from test_suite_saver import TestSuiteSaver
+from statistics import Statistics
 
 # the name of the TestRunSaver class to use
 TestSuiteSaverClass = 'CSVSaver'
@@ -101,19 +102,13 @@ class CSVSaver(TestSuiteSaver):
 
                     # write the row containing the sensor name
                     csv_writer.writerow([sensor, units[sensor]])
-                    
-                    # calculate mean and std dev
-                    arr = numpy.array(data)
-                    mean = numpy.mean(arr)
-                    std = numpy.std(arr)
-                    minimum = numpy.amin(arr)
-                    maximum = numpy.amax(arr)
 
-                    # write out mean and std dev
-                    csv_writer.writerow(['mean', mean])
-                    csv_writer.writerow(['std dev', std])
-                    csv_writer.writerow(['min', minimum])
-                    csv_writer.writerow(['max', maximum])
+                    # calculate and write out basic statistics from the data
+                    stats = Statistics(data)
+                    csv_writer.writerow(['mean', stats.mean])
+                    csv_writer.writerow(['std dev', stats.std])
+                    csv_writer.writerow(['min', stats.minimum])
+                    csv_writer.writerow(['max', stats.maximum])
 
                     # write out rows of raw data
                     for row in data:

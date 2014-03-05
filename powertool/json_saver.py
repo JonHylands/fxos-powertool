@@ -5,10 +5,10 @@
 
 from collections import defaultdict
 import json
-import numpy
 
 from test_suite import TestSuite
 from test_suite_saver import TestSuiteSaver
+from statistics import Statistics
 
 # the name of the TestRunSaver class to use
 TestSuiteSaverClass = 'JSONSaver'
@@ -68,19 +68,14 @@ class JSONSaver(TestSuiteSaver):
             # now write out the csv
             for sensor_name, data in agg.iteritems():
 
-                # calculate mean and std dev
-                arr = numpy.array(data)
-                mean = numpy.mean(arr)
-                std = numpy.std(arr)
-                minimum = numpy.amin(arr)
-                maximum = numpy.amax(arr)
-
+                # calculate and save basic statistics
+                stats = Statistics(data)
                 sensor = { 'name': sensor_name,
                            'units': units[sensor_name],
-                           'mean': mean,
-                           'std dev': std,
-                           'min': minimum,
-                           'max': maximum,
+                           'mean': stats.mean,
+                           'std dev': stats.std,
+                           'min': stats.minimum,
+                           'max': stats.maximum,
                            'data': data }
 
                 series['sensors'].append(sensor)
