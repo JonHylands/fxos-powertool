@@ -14,6 +14,7 @@ from sample_source import SampleSource
 from device_manager import DeviceManager
 from sample import Sample
 from time_utils import now_in_millis
+from serial.tools import list_ports
 
 # the name of the SampleSource class to use
 SampleSourceClass = 'MozillaAmmeter'
@@ -48,6 +49,10 @@ class MozillaDevice(threading.Thread):
     def __init__(self, path, async=True):
         super(MozillaDevice, self).__init__()
         self._path = path
+        if path == None:
+            self._path = self._scanForDevice()
+        else:
+            self._path = path
         self._cmds = Queue.Queue()
         self._quit = threading.Event()
         self._packets = collections.deque(maxlen=10)
@@ -60,6 +65,14 @@ class MozillaDevice(threading.Thread):
             super(MozillaDevice, self).start()
         else:
             self._responseSize = self.SYNC_RESPONSE_SIZE
+
+    def _scanForDevice(self):
+        # get the list of os-specific serial port names that have a Mozilla ammeter connected to them
+        ports = [p[0] for p in serial.tools.list_ports.comports() if p[2].lower().startswith('usb vid:pid=03eb:204b')]
+        if len(ports) > 0:
+            print "Found Mozilla Ammeter attached to: %s" % ports[0]
+            return ports[0]
+        raise SampleSourceNoDeviceError('mozilla')
 
     def sendCommand(self, cmd):
         """ adds a command to the command queue """
