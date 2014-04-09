@@ -13,23 +13,25 @@ from ui import UI
 UIClass = "TkUI"
 
 RIGHT_SIDE = 800
-BOTTOM_SIDE = 700
+BOTTOM_SIDE = 800
 ZERO_LINE = BOTTOM_SIDE / 2
-SCALE_FACTOR = 2
+SCALE_FACTOR = 1600.0 / float(BOTTOM_SIDE)
 FRAMERATE = 25
 FRAME_DELAY = 1000 / FRAMERATE
-APP_NAME = "FxOS Powertool -- "
+APP_NAME = "JON - FxOS Powertool -- "
 
 class TkUI(UI, SuiteRunner):
     """ This implements a Tk GUI interface for displaying samples """
 
     def __init__(self, suite, show=None):
+        global BOTTOM_SIDE
         super(TkUI, self).__init__()
         self._suite = suite
         self._show = show
         self._test_index = 0
 
         self._root = Tk()
+        BOTTOM_SIDE = min(BOTTOM_SIDE, self._root.winfo_screenheight() - 50)
         
         # set the application window title
         self._updateTitle()
@@ -101,7 +103,7 @@ class TkUI(UI, SuiteRunner):
 
         if sample != None:
             # add it to 
-            newYPosition = ZERO_LINE - (sample.value / SCALE_FACTOR)
+            newYPosition = ZERO_LINE - round(sample.value / SCALE_FACTOR)
 
             # log the sample
             self._logWidget.insert(END, " ".join([str(sample.value), sample.units]))
@@ -110,7 +112,7 @@ class TkUI(UI, SuiteRunner):
             # we want horizontal lines each 100 mA
             if (self._xPos % RIGHT_SIDE) == 0:
                 for index in range(-7, 8):
-                    lineY = ZERO_LINE - (index * (100 / SCALE_FACTOR));
+                    lineY = ZERO_LINE - round(index * (100.0 / SCALE_FACTOR))
                     self._mainCanvas.create_line(RIGHT_SIDE, lineY, self._xPos + RIGHT_SIDE, lineY, fill="grey")
 
             # we want vertical lines every second
@@ -162,7 +164,7 @@ class TkUI(UI, SuiteRunner):
         self._scaleCanvas.create_line(99, 0, 99, BOTTOM_SIDE)
         for index in range(-7, 8):
             current = index * 100
-            _yPos = (ZERO_LINE - 3) - (index * 50)
+            _yPos = ZERO_LINE - round(index * (100.0 / SCALE_FACTOR))
             label = str(current) + ' mA'
             self._scaleCanvas.create_text(10, _yPos, text=label, anchor=SW)
             self._scaleCanvas.create_line(0, _yPos + 5, 99, _yPos + 5)
@@ -172,7 +174,7 @@ class TkUI(UI, SuiteRunner):
     # we need to fill in the left side of the canvas which isn't really used
     def _drawInitialMainCanvas(self):
         for index in range(-7, 8):
-            newY = ZERO_LINE - (index * 50);
+            newY = ZERO_LINE - round(index * (100.0 / SCALE_FACTOR))
             self._mainCanvas.create_line(0, newY, RIGHT_SIDE, newY, fill="grey")
 
     # handle key presses
