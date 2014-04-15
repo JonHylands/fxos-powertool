@@ -201,7 +201,7 @@ class MozillaPacketHandler(threading.Thread):
             sampleBytes = dataPortion[startIndex:endIndex]
             
             # get the current in mA
-            current = int(ord(sampleBytes[0]) + (ord(sampleBytes[1]) * 256) / 10)
+            current = int((ord(sampleBytes[0]) + (ord(sampleBytes[1]) * 256)) / 10)
             if (current > 32767):
                 current = (65536 - current) * -1;
 
