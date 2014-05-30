@@ -10,8 +10,9 @@ class Statistics(object):
 
     def __init__(self, data=[[]]):
         # flatten 2d-array and convert to float
+        self._data = []
         for x in data:
-            self._data = [float(d) for d in x]
+            self._data.extend([float(d) for d in x])
 
     @property
     def mean(self):
