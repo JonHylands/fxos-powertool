@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import sys
+import sys, inspect
 import argparse
 
 from sample_source import SampleSource
@@ -56,7 +56,8 @@ def main():
         sys.exit(0)
 
     except Exception, e:
-        print("\nERROR: %s\n" % e)
+        frame = inspect.trace()[-1]
+        print >> sys.stderr, "\nException:\n from %s, line %d:\n %s\n" % (frame[1], frame[2], e)
         parser.print_help()
         sys.exit(1)
 
