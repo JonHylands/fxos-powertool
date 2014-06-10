@@ -22,14 +22,14 @@ def main():
     sampleTimeEpochOffset = (sampleTimeAfterEpochOffset + sampleTimeBeforeEpochOffset) * 1000.0 / 2.0 - firstSampleMsCounter;
 
     try:
-    while True:
-        sample = ammeter.getSample(ammeterFields)
-        if sample is not None:
-            current = sample['current'].value / 10.0
-            sampleObj = {}
-            sampleObj['current'] = current;
-            sampleObj['time'] = sample['time'].value;
-            powerLog.append(sampleObj)
+        while True:
+            sample = ammeter.getSample(ammeterFields)
+            if sample is not None:
+                current = sample['current'].value / 10.0
+                sampleObj = {}
+                sampleObj['current'] = current;
+                sampleObj['time'] = sample['time'].value;
+                powerLog.append(sampleObj)
 
     except KeyboardInterrupt:
         powerProfile = {}
