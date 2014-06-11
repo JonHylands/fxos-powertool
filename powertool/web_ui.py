@@ -15,6 +15,7 @@ from autobahn.twisted.websocket import WebSocketServerFactory, \
 from ui import UI
 from suite_runner import SuiteRunner
 
+WEB_SOCKET_PORT = 9000
 UPDATE_FREQUENCY = 50 # Hz
 
 TIMER_DELAY = 1.0 / UPDATE_FREQUENCY # TIMER_DELAY is in seconds
@@ -30,16 +31,12 @@ class WebUI(UI, SuiteRunner):
         self._show = show
 
         ServerFactory = PowerServerFactory
-        self._factory = ServerFactory("ws://localhost:9000", False, False)
+        self._factory = ServerFactory("ws://localhost:{}".format(WEB_SOCKET_PORT), False, False)
 
         self._factory.protocol = PowerServerProtocol
         self._factory.setProtocolOptions(allowHixie76 = True)
         self._factory.setSuite(self._suite)
-        listenWS(self._factory)
-
-        webdir = File(".")
-        web = Site(webdir)
-        reactor.listenTCP(8080, web)
+        reactor.listenTCP(WEB_SOCKET_PORT, self._factory)
 
     def run(self):
         reactor.run()
@@ -85,7 +82,7 @@ class PowerServerFactory(WebSocketServerFactory):
             sample = self._suite.getSample()
         except Exception, e:
             print("failed to get initial sample: %s" % e)
-            sys.exit(0)
+            sys.exit(1)
 
         msTime = int(time.time() * 1000)
         msAmmeterTime = sample["time"].value
@@ -93,12 +90,11 @@ class PowerServerFactory(WebSocketServerFactory):
 
     def setSuite(self, suite):
         self._suite = suite
-        print("Tests: {}".format(suite.tests))
         try:
             self._suite.startTest("Null Test")
         except Exception, e:
             print("failed to start test: %s" % e)
-            sys.exit(0)
+            sys.exit(1)
         reactor.callLater(0.5, self.setup)
 
     def tick(self):
