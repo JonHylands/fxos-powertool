@@ -68,7 +68,7 @@ class MozillaDevice(threading.Thread):
 
     def _scanForDevice(self):
         # get the list of os-specific serial port names that have a Mozilla ammeter connected to them
-        ports = [p[0] for p in serial.tools.list_ports.comports() if p[2].lower().startswith('usb vid:pid=03eb:204b')]
+        ports = [p[0] for p in serial.tools.list_ports.comports() if p[2].lower().startswith('usb vid:pid=03eb:204b') or p[2].lower().startswith('usb vid:pid=3eb:204b')]
         if len(ports) > 0:
             print "Found Mozilla Ammeter attached to: %s" % ports[0]
             return ports[0]
