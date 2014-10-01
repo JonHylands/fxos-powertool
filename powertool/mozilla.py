@@ -201,9 +201,11 @@ class MozillaPacketHandler(threading.Thread):
             sampleBytes = dataPortion[startIndex:endIndex]
             
             # get the current in mA
-            current = int((ord(sampleBytes[0]) + (ord(sampleBytes[1]) * 256)) / 10)
+            # current = int((ord(sampleBytes[0]) + (ord(sampleBytes[1]) * 256)) / 10)
+            current = ord(sampleBytes[0]) + (ord(sampleBytes[1]) * 256)
             if (current > 32767):
                 current = (65536 - current) * -1;
+            current = current / 10.0 # convert 1/10 mA to mA
 
             # get the voltage in mV
             voltage = ord(sampleBytes[2]) + (ord(sampleBytes[3]) * 256)
@@ -254,7 +256,7 @@ class MozillaAmmeter(SampleSource, DeviceManager):
 
         if sample:
             # pull the requested samples out
-            return { name: Sample(int(sample[name]), self.UNITS[name]) for name in names }
+            return { name: Sample(sample[name], self.UNITS[name]) for name in names }
         else:
             return None
 
