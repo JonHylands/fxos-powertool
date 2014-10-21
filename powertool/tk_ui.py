@@ -83,7 +83,7 @@ class TkUI(UI, SuiteRunner):
     def _drawCurrentLine(self):
         startTime = now_in_millis()
 
-        # auto-scroll the canvas one pixel
+        auto-scroll the canvas one pixel
         if self._xPos > RIGHT_SIDE:
             scrollPair = self._canvasScroll.get()
             scrollPos = scrollPair[1]

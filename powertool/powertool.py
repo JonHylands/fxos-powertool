@@ -23,7 +23,7 @@ def main():
         parser.add_argument('-p', '--path', type=str, default=None,
                             help="specify path to ammeter device (e.g. /dev/ttyACM0)")
         parser.add_argument('-u', '--ui', type=str, default='tk',
-                            choices=['tk','cli', 'web'], help="specify which UI to use")
+                            choices=['tk','cli', 'web', 'simple'], help="specify which UI to use")
         parser.add_argument('-f', '--file', type=str, default=None, help="test run config file")
         parser.add_argument('-o', '--out', type=str, default=None, help="output data file")
         parser.add_argument('-s', '--show', type=str, default='current', help="name of the sample source to display")

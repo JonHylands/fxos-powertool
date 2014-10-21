@@ -212,6 +212,7 @@ class MozillaPacketHandler(threading.Thread):
             time = ord(sampleBytes[4]) + (ord(sampleBytes[5]) * 256) + (ord(sampleBytes[6]) * 65536) + (ord(sampleBytes[7]) * 16777216)
 
             self._samples.append({'current':current, 'voltage':voltage, 'time':time})
+            #print "time: ", time
 
 
     def run(self):
@@ -225,7 +226,8 @@ class MozillaPacketHandler(threading.Thread):
 
             # if we didn't get a packet, sleep a little and try again
             if data == None:
-                time.sleep(0.1)
+                time.sleep(0.0001)
+                #print "Sleeping"
                 continue
 
             self.processPacket(data)
