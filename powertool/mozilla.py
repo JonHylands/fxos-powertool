@@ -192,14 +192,14 @@ class MozillaPacketHandler(threading.Thread):
             print >> sys.stderr, "Packet is not %d bytes long - %d bytes" % (self._packetSize, packetLength)
             return
 
-	checksum = 0
-	for index in range(2, packetLength - 1):
-	    checksum = ((checksum + ord(data[index])) & 255)
-	checksum = checksum ^ 255
-	packetChecksum = ord(data[packetLength - 1])
-	if checksum != packetChecksum:
-	    print >> sys.stderr, "Packet checksum: %d does not match expected: %d" % (packetChecksum, checksum)
-            return
+	#checksum = 0
+	#for index in range(2, packetLength - 1):
+	    #checksum = ((checksum + ord(data[index])) & 255)
+	#checksum = checksum ^ 255
+	#packetChecksum = ord(data[packetLength - 1])
+	#if checksum != packetChecksum:
+	    #print >> sys.stderr, "Packet checksum: %d does not match expected: %d" % (packetChecksum, checksum)
+            #return
         # unpack the first sample from the packet
         dataPortion = data[5:packetLength-1]
         packetCount = (packetLength - 6) / 8
