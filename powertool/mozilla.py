@@ -39,6 +39,7 @@ class MozillaDevice(threading.Thread):
     GET_RAW_SAMPLE = bytearray.fromhex("ff ff 01 02 0A F2")
     GET_VERSION = bytearray.fromhex("ff ff 01 02 0B F1")
     GET_SERIAL = bytearray.fromhex("ff ff 01 02 0E EE")
+    SOFT_RESET = bytearray.fromhex("ff ff 01 02 1E DE")
 
     #SET_SERIAL = bytearray.fromhex("ff ff 01 04 0D")
     #SET_SERIAL also includes 2 bytes (little endian) of the serial#, plus the CRC
@@ -83,6 +84,11 @@ class MozillaDevice(threading.Thread):
         self._module.write(self.GET_SAMPLE)
         self._module.flush()
         return self._module.read(self._responseSize)
+
+    def softReset(self):
+        # We use this when we're running in sync mode
+        self._module.write(self.SOFT_RESET)
+        self._module.flush()
 
     @property
     def packet(self):
@@ -275,6 +281,9 @@ class MozillaAmmeter(SampleSource, DeviceManager):
         self._handler.quit()
         # stop the device handler thread and wait for it to finish
         self._device.quit()
+
+    def softReset(self):
+        self._device.softReset()
 
     # FIXME: refactor this to use an ADBDeviceManager mixin eventually
     def startCharging(self, charge_complete):
