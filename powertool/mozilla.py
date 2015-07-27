@@ -92,6 +92,7 @@ class MozillaDevice(threading.Thread):
         self._module.close()
         # Give the ammeter time to reset (500 ms), and then reconnect
         time.sleep(0.5)
+        self._path = self._scanForDevice()
         self._module = serial.Serial(port=self._path, baudrate=self.BAUD, timeout=self.TIMEOUT)
 
     @property
