@@ -89,8 +89,9 @@ class MozillaDevice(threading.Thread):
         # We use this when we're running in sync mode
         self._module.write(self.SOFT_RESET)
         self._module.flush()
-        # Give the ammeter time to reset (100 ms), and then reconnect
-        time.sleep(0.1)
+        self._module.close()
+        # Give the ammeter time to reset (500 ms), and then reconnect
+        time.sleep(0.5)
         self._module = serial.Serial(port=self._path, baudrate=self.BAUD, timeout=self.TIMEOUT)
 
     @property
