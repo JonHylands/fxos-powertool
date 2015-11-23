@@ -40,6 +40,9 @@ class MozillaDevice(threading.Thread):
     GET_VERSION = bytearray.fromhex("ff ff 01 02 0B F1")
     GET_SERIAL = bytearray.fromhex("ff ff 01 02 0E EE")
     SOFT_RESET = bytearray.fromhex("ff ff 01 02 1E DE")
+    TURN_ON_AUX_USB = bytearray.fromhex("ff ff 01 02 1B E1")
+    TURN_OFF_AUX_USB = bytearray.fromhex("ff ff 01 02 1A E2")
+    DUMP_DEBUG = bytearray.fromhex("ff ff 01 02 10 EC")
 
     #SET_SERIAL = bytearray.fromhex("ff ff 01 04 0D")
     #SET_SERIAL also includes 2 bytes (little endian) of the serial#, plus the CRC
@@ -78,6 +81,10 @@ class MozillaDevice(threading.Thread):
     def sendCommand(self, cmd):
         """ adds a command to the command queue """
         self._cmds.put_nowait(cmd)
+
+    def sendCommandDirect(self, cmd):
+        self._module.write(cmd)
+        self._module.flush()
 
     def getPacket(self):
         # We use this when we're running in sync mode
@@ -131,6 +138,7 @@ class MozillaDevice(threading.Thread):
 
         # start off by putting the START_ASYNC command in the command queue
         self.sendCommand(MozillaDevice.START_ASYNC)
+        time.sleep(0.1)
 
         while True:
             if not self._cmds.empty():
@@ -304,8 +312,19 @@ class MozillaAmmeter(SampleSource, DeviceManager):
         pass
 
     def hardPowerOff(self):
-        self._device.sendCommand(MozillaDevice.TURN_OFF_BATTERY)
+        self._device.sendCommandDirect(MozillaDevice.TURN_OFF_BATTERY)
 
     def hardPowerOn(self):
-        self._device.sendCommand(MozillaDevice.TURN_ON_BATTERY)
+        self._device.sendCommandDirect(MozillaDevice.TURN_ON_BATTERY)
 
+    def turnOnAuxUsb(self):
+        print "Powertool - sending TURN_ON_AUX_USB"
+        self._device.sendCommandDirect(MozillaDevice.TURN_ON_AUX_USB)
+
+    def turnOffAuxUsb(self):
+        print "Powertool - sending TURN_OFF_AUX_USB"
+        self._device.sendCommandDirect(MozillaDevice.TURN_OFF_AUX_USB)
+
+    def turnOnDebugMode(self):
+        print "Powertool - sending DUMP_DEBUG"
+        self._device.sendCommandDirect(MozillaDevice.DUMP_DEBUG)
